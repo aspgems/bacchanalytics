@@ -1,0 +1,6 @@
+= Bacchanalytics
+
+Bacchanalytics is a rack middleware that inserts the Asynchronous Google Analytics
+Tracking Code in your application.
+
+Copyright (c) 2010 ASPgems, released under the MIT license
