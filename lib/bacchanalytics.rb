@@ -21,7 +21,7 @@ class Bacchanalytics
   # http://code.google.com/apis/analytics/docs/tracking/asyncTracking.html
   def google_analytics_tracking_code
 
-    code = <<-HTML
+    gatc = <<-SCRIPT
     <script type="text/javascript">
 
     var _gaq = _gaq || [];
@@ -35,9 +35,9 @@ class Bacchanalytics
     })();
 
     </script>
-    HTML
+    SCRIPT
 
-    return code
+    return gatc
 
   end
 
