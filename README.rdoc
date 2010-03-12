@@ -3,4 +3,14 @@
 Bacchanalytics is a rack middleware that inserts the Asynchronous Google Analytics
 Tracking Code in your application.
 
+== Usage in a Rails Application
+
+Add the following line in your config/environment.rb:
+
+  config.middleware.use "Bacchanalytics", :web_property_id => "UA-XXXXX-X"
+
+You have to replace "UA-XXXXX-X" with the Google Analytics property ID of your site.
+You can find more information on the Google Analytics property ID in
+http://code.google.com/apis/analytics/docs/concepts/gaConceptsAccounts.html#accountID
+
 Copyright (c) 2010 ASPgems, released under the MIT license
