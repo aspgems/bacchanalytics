@@ -1,9 +1,13 @@
 require 'test_helper.rb'
 require 'rack/test'
 require 'nokogiri'
+require 'bacchanalytics'
 
 class BacchanalyticsTest < ActiveSupport::TestCase
   include Rack::Test::Methods
+  include GoogleAnalyticsTrackingCode
+
+  WEB_PROPERTY_ID = "UA-12345-6"
 
   def app
     Rack::Builder.app do
@@ -16,12 +20,11 @@ class BacchanalyticsTest < ActiveSupport::TestCase
 
   def test_gatc_must_be_present_after_body
     get "/"
-    gatc_expected = GATC.gsub(/\s/, '')
+    gatc_expected = google_analytics_tracking_code(WEB_PROPERTY_ID).gsub(/\s/, '')
     gatc_rack = Nokogiri::HTML(last_response.body).xpath("/html/body/script")[0].to_html.gsub(/\s/, '')
     assert_equal gatc_expected, gatc_rack
   end
 
-  WEB_PROPERTY_ID = "UA-12345-6"
 
   HTML_DOCUMENT = <<-HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -51,21 +54,5 @@ class BacchanalyticsTest < ActiveSupport::TestCase
 </body>
 </html>
 HTML
-
-    GATC = <<-SCRIPT
-<script type="text/javascript">
-
-var _gaq = _gaq || [];
-_gaq.push(['_setAccount', '#{WEB_PROPERTY_ID}']);
-_gaq.push(['_trackPageview()']);
-
-(function() {
-  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-  (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(ga);
-})();
-
-</script>
-SCRIPT
 
 end
