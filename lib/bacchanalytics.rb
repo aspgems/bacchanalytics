@@ -37,11 +37,18 @@ class Bacchanalytics
 
   def call(env)
     status, headers, response = @app.call(env)
+    # headers["Content-Type"] will be nil if the status of the response is 304 (Not Modified)
+    # From the HTTP Status Code Definitions:
+    # If the client has performed a conditional GET request and access is allowed,
+    # but the document has not been modified, the server SHOULD respond with this status code.
+    # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
     if !headers["Content-Type"].nil? && (headers["Content-Type"].include? "text/html")
       body = response.body
-      body.sub! /<[bB][oO][dD][yY]>/, "<body>\n\n#{google_analytics_tracking_code(@web_property_id)}"
-      headers["Content-Length"] = body.length.to_s
-      [status, headers, body]
+      new_body = body.sub /<[bB][oO][dD][yY]\s*>/, "<body>\n\n#{google_analytics_tracking_code(@web_property_id)}"
+      headers["Content-Length"] = new_body.length.to_s
+      new_response = Rack::Response.new
+      new_response.body = new_body
+      [status, headers, new_response]
     else
       [status, headers, response]
     end
