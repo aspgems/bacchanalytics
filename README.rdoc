@@ -13,4 +13,36 @@ You have to replace "UA-XXXXX-X" with the Google Analytics property ID of your s
 You can find more information on the Google Analytics property ID in
 http://code.google.com/apis/analytics/docs/concepts/gaConceptsAccounts.html#accountID
 
+
+== Google Website Optimizer
+
+In order to use A/B tests, just add the following lines to your config/environment.rb:
+
+config.middleware.use "WebsiteOptimizer", :account_id => 'UA-XXXXXXXX-X',
+                                          :ab => { 'NNNNNNNNNN' => {:a => ["/", "/public/index"],
+                                                                    :b => "/home2",
+                                                                    :goal => "/public/signup"}
+                                                 }
+
+where 'UA-XXXXXXXX-X' is the ID of the Website Optimizer account and 'NNNNNNNNNN' is the track page id, a key provided in the Website Optimizer javascript. The 'ab' hash contains the A (origin) pages, the B (variations) pages and the goal pages.
+
+The embeded javascript looks like:
+
+      <!-- Google Website Optimizer Tracking Script -->
+      <script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['gwo._setAccount', 'UA-XXXXXXXX-X']);
+        _gaq.push(['gwo._trackPageview', '/3203696384/test']);
+        (function() {
+          var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+          ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+          var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+      </script>
+      <!-- End of Google Website Optimizer Tracking Script -->
+
+As you can see, the 'NNNNNNNNNN' is the '3203696384' track page ID.
+
+
+
 Copyright (c) 2010 ASPgems, released under the MIT license

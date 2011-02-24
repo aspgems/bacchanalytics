@@ -1,14 +1,15 @@
 module GoogleAnalyticsTrackingCode
-  
+
   # Construct the new asynchronous version of the Google Analytics code.
   # http://code.google.com/apis/analytics/docs/tracking/asyncTracking.html
-  def google_analytics_tracking_code(web_property_id)
+  def google_analytics_tracking_code(web_property_id, domain_name)
 
     gatc = <<-SCRIPT
     <script type="text/javascript">
 
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', '#{web_property_id}']);
+    _gaq.push(['_setDomainName', '.#{domain_name}']);
     _gaq.push(['_trackPageview']);
 
     (function() {
@@ -44,13 +45,42 @@ class Bacchanalytics
     # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
     if !headers["Content-Type"].nil? && (headers["Content-Type"].include? "text/html")
       body = response.body
-      new_body = body.sub /<[bB][oO][dD][yY]\s*>/, "<body>\n\n#{google_analytics_tracking_code(@web_property_id)}"
+      new_body = body.sub /<[hH][eE][aA][dD]\s*>/, "<head>\n\n#{google_analytics_tracking_code(@web_property_id, Facturagem.config.default_application_domain)}"
       headers["Content-Length"] = new_body.length.to_s
       new_response = Rack::Response.new
       new_response.body = new_body
       [status, headers, new_response]
     else
       [status, headers, response]
+    end
+  end
+
+  def self.track_page_view_code(page)
+    "_gaq.push(['_trackPageview', '#{page}'])"
+  end  
+  
+  def self.track_page_view_script(page)
+    gatc = <<-SCRIPT
+    <script type="text/javascript">    
+    #{track_page_view_code(page)};
+    </script>
+    SCRIPT
+    return gatc    
+  end
+
+  def self.track_event(category, action, opt_label=nil, opt_value=nil, options = {})
+    if opt_label.blank? || opt_value.blank?
+      track_event_code = "_gaq.push(['_trackEvent', '#{category}', '#{action}'])"
+    else
+      track_event_code = "_gaq.push(['_trackEvent', '#{category}', '#{action}', '#{opt_label}', '#{opt_value}'])"
+    end
+
+
+    timeout = options[:timeout] rescue nil
+    if timeout
+      "#{track_event_code};setTimeout('void(0)', #{timeout});"
+    else
+      track_event_code
     end
   end
 

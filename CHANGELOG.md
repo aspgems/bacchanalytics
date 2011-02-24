@@ -1,3 +1,8 @@
+0.1.2
+-----
+
+* Added WebSite Optimizer tracking features
+
 0.1.1
 ----
 
