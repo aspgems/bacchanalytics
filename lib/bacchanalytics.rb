@@ -2,14 +2,15 @@ module GoogleAnalyticsTrackingCode
 
   # Construct the new asynchronous version of the Google Analytics code.
   # http://code.google.com/apis/analytics/docs/tracking/asyncTracking.html
-  def google_analytics_tracking_code(web_property_id, domain_name)
-
+  def google_analytics_tracking_code(web_property_id, domain_name = nil)
     gatc = <<-SCRIPT
     <script type="text/javascript">
 
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', '#{web_property_id}']);
-    _gaq.push(['_setDomainName', '.#{domain_name}']);
+    if ('#{domain_name}' !== ''){
+      _gaq.push(['_setDomainName', '#{domain_name}']);
+    }
     _gaq.push(['_trackPageview']);
 
     (function() {
@@ -22,7 +23,6 @@ module GoogleAnalyticsTrackingCode
     SCRIPT
 
     return gatc
-
   end
 
 end
@@ -34,6 +34,7 @@ class Bacchanalytics
   def initialize(app, options = {})
     @app = app
     @web_property_id = options[:web_property_id] || "UA-XXXXX-X"
+    @domain_name = options[:domain_name]
   end
 
   def call(env)
@@ -45,7 +46,7 @@ class Bacchanalytics
     # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
     if !headers["Content-Type"].nil? && (headers["Content-Type"].include? "text/html")
       body = response.body
-      new_body = body.sub /<[hH][eE][aA][dD]\s*>/, "<head>\n\n#{google_analytics_tracking_code(@web_property_id, Facturagem.config.default_application_domain)}"
+      new_body = body.sub /<[hH][eE][aA][dD]\s*>/, "<head>\n\n#{google_analytics_tracking_code(@web_property_id, @domain_name)}"
       headers["Content-Length"] = new_body.length.to_s
       new_response = Rack::Response.new
       new_response.body = new_body

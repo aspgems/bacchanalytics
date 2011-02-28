@@ -1,3 +1,8 @@
+(Unreleased)
+------------
+
+* FIX Bacchanalytics should be able to set the domain name
+
 0.1.2
 -----
 

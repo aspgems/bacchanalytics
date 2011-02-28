@@ -13,6 +13,10 @@ You have to replace "UA-XXXXX-X" with the Google Analytics property ID of your s
 You can find more information on the Google Analytics property ID in
 http://code.google.com/apis/analytics/docs/concepts/gaConceptsAccounts.html#accountID
 
+You are able to set the domain name of your site.
+
+  config.middleware.use "Bacchanalytics", :web_property_id => "UA-XXXXX-X"
+                                          :domain_name => ".facturagem.com"
 
 == Google Website Optimizer
 
