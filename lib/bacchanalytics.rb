@@ -11,6 +11,7 @@ module GoogleAnalyticsTrackingCode
     if ('#{domain_name}' !== ''){
       _gaq.push(['_setDomainName', '#{domain_name}']);
     }
+#{ignored_organic_script}
     _gaq.push(['_trackPageview']);
 
     (function() {
@@ -25,6 +26,27 @@ module GoogleAnalyticsTrackingCode
     return gatc
   end
 
+  def ignored_organic_script
+    script = ""
+
+    begin
+      if @ignored_organic.is_a?(Array)
+        @ignored_organic.each{|item|
+          script << <<-CODE
+    _gaq.push(['_addIgnoredOrganic', '#{item}']);
+          CODE
+        }
+      elsif @ignored_organic.is_a?(String)
+          script << <<-CODE
+    _gaq.push(['_addIgnoredOrganic', '#{@ignored_organic}']);
+          CODE
+      end
+    rescue
+    end
+
+    script
+  end
+
 end
 
 class Bacchanalytics
@@ -35,6 +57,7 @@ class Bacchanalytics
     @app = app
     @web_property_id = options[:web_property_id] || "UA-XXXXX-X"
     @domain_name = options[:domain_name]
+    @ignored_organic = options[:ignored_organic]
   end
 
   def call(env)

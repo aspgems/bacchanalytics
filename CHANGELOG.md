@@ -1,3 +1,9 @@
+0.1.3
+-----
+
+* Added "ignored organic" features
+
+
 (Unreleased)
 ------------
 
