@@ -72,7 +72,7 @@ class Bacchanalytics
       new_body = body.sub /<[hH][eE][aA][dD]\s*>/, "<head>\n\n#{google_analytics_tracking_code(@web_property_id, @domain_name)}"
       headers["Content-Length"] = new_body.length.to_s
       new_response = Rack::Response.new
-      new_response.body = new_body
+      new_response.body = [new_body]
       [status, headers, new_response]
     else
       [status, headers, response]

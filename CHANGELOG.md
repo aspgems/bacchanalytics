@@ -1,3 +1,9 @@
+0.1.5
+-----
+
+* Added support for rails 3
+
+
 0.1.3
 -----
 
