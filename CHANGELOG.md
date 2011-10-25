@@ -1,3 +1,8 @@
+0.1.6
+-----
+
+* Added support for multiple tests with the same goal
+
 0.1.5
 -----
 
