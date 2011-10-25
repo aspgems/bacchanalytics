@@ -1,9 +1,11 @@
-= Bacchanalytics
+Bacchanalytics
+==============
 
 Bacchanalytics is a rack middleware that inserts the Asynchronous Google Analytics
 Tracking Code in your application.
 
-== Usage in a Rails Application
+Usage in a Rails Application
+----------------------------
 
 Add the following line in your config/environment.rb:
 
@@ -36,7 +38,8 @@ config.middleware.use "Bacchanalytics", :web_property_id => "UA-XXXXXXX-X",
 
 
 
-== Google Website Optimizer
+Google Website Optimizer
+------------------------
 
 In order to use A/B tests, just add the following lines to your config/environment.rb:
 
@@ -70,7 +73,8 @@ The embeded javascript looks like:
 As you can see, the 'NNNNNNNNNN' is the '3203696384' track page ID.
 
 
-== Google Adwords Conversions
+Google Adwords Conversions
+--------------------------
 
 ````ruby
 config.middleware.use "AdwordsConversion", [ 
