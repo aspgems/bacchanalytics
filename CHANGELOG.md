@@ -1,3 +1,8 @@
+0.1.7
+-----
+
+* Fixed bug with multiple middlewares (like newrelic 3.2.0) and different response styles (Array or String)
+
 0.1.6
 -----
 
