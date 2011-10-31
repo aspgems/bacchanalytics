@@ -1,28 +1,43 @@
-require 'test_helper.rb'
+require 'test_helper'
 require 'rack/test'
 require 'nokogiri'
 require 'bacchanalytics'
 
-class BacchanalyticsTest < ActiveSupport::TestCase
+ENV['RACK_ENV'] = 'test'
+
+class BacchanalyticsTest < Test::Unit::TestCase
   include Rack::Test::Methods
-  include GoogleAnalyticsTrackingCode
+  include GoogleAnalytics::TrackingCode
+  include GoogleAnalytics::Base
 
   WEB_PROPERTY_ID = "UA-12345-6"
 
   def app
-    Rack::Builder.app do
-      response = Rack::Response.new
-      response.body = HTML_DOCUMENT
-      rack_app = lambda { |env| [200, {'Content-Type' => 'text/html'}, response] }
-      run Bacchanalytics.new(rack_app, :web_property_id => WEB_PROPERTY_ID)
+    response = Rack::Response.new(HTML_DOCUMENT)
+    mock_app = lambda do |env|
+      [200, {'Content-Type' => 'text/html'}, response]
     end
+    Bacchanalytics.new(mock_app, :web_property_id => WEB_PROPERTY_ID)
   end
 
-  def test_gatc_must_be_present_after_body
+  def test_should_only_instrument_html_requests
+    assert app.should_instrument?({'Content-Type' => 'text/html'})
+    assert !app.should_instrument?({'Content-Type' => 'text/xhtml'})
+  end
+
+  def test_should_insert_gatc_inside_head
     get "/"
+
     gatc_expected = google_analytics_tracking_code(WEB_PROPERTY_ID).gsub(/\s/, '')
-    gatc_rack = Nokogiri::HTML(last_response.body).xpath("/html/body/script")[0].to_html.gsub(/\s/, '')
-    assert_equal gatc_expected, gatc_rack
+    gatc_rack = Nokogiri::HTML(last_response.body).xpath("/html/head/script")[0].to_html.gsub(/\s/, '')
+    assert gatc_rack.include?(gatc_expected), gatc_rack
+  end
+
+  def test_should_insert_the_web_property
+    get "/"
+
+    gatc_rack = Nokogiri::HTML(last_response.body).xpath("/html/head/script")[0].to_html
+    assert gatc_rack.include?("_gaq.push(['_setAccount', 'UA-12345-6']);"), gatc_rack
   end
 
 

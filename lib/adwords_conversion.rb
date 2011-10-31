@@ -1,3 +1,5 @@
+require "google_analytics"
+
 module AdwordsConversionTrackingCode
 
   # Construct the Adwords conversion tracking code.
@@ -6,22 +8,22 @@ module AdwordsConversionTrackingCode
 
     tracking_code = ""    
     conversions.each do |conversion|
-      begin        
-        cid = conversion[:id]
-        label = conversion[:label]
-        pages = conversion[:pages] || []
-        next if(cid.blank? || label.blank? || pages.empty?)
-        
-        description = conversion[:description] || 'adwords conversion'
-        language = conversion[:language] || 'en'
-        format = conversion[:format] || 3         
-        value = conversion[:value] || 0
-        
-          # Check the requested page, to include the A, B or goal tracking code.
-          if pages.include?(page)
-            tracking_code = compose_code(cid, label, language, format, value, description)
-            break
-          end
+      begin
+        next unless valid_conversion?(conversion)
+
+        # Check the requested page, to include the A, B or goal tracking code.
+        if conversion[:pages].include?(page)
+          cid = conversion[:id]
+          label = conversion[:label]
+
+          description = conversion[:description] || 'adwords conversion'
+          language = conversion[:language] || 'en'
+          format = conversion[:format] || 3
+          value = conversion[:value] || 0
+
+          tracking_code = conversion_code(cid, label, language, format, value, description)
+          break
+        end
       rescue
         tracking_code = ""
       end
@@ -31,9 +33,12 @@ module AdwordsConversionTrackingCode
 
   private
 
-  
-  def compose_code(cid, label, language, format, value,description)
-    code = <<-SCRIPT
+  def valid_conversion?(conversion)
+    !(conversion[:id].blank? || conversion[:label].blank? || conversion[:pages].empty?)
+  end
+
+  def conversion_code(cid, label, language, format, value, description)
+    <<-SCRIPT
     <!-- Google Code for #{description} Conversion Page -->
     <script type="text/javascript">
       /* <![CDATA[ */
@@ -55,13 +60,8 @@ module AdwordsConversionTrackingCode
       <img height="1" width="1" style="border-style:none;" alt="" src="https://www.googleadservices.com/pagead/conversion/#{cid}/?value=#{value}&amp;label=#{label}&amp;guid=ON&amp;script=0"/>
       </div>
     </noscript>
-    
     SCRIPT
-
-    return code
   end
-
-  
 end
 
 ### 
@@ -77,7 +77,7 @@ end
 ####
 
 class AdwordsConversion
-
+  include GoogleAnalytics::Base
   include AdwordsConversionTrackingCode
 
   def initialize(app, conversions = [])
@@ -87,20 +87,17 @@ class AdwordsConversion
 
   def call(env)
     status, headers, response = @app.call(env)
-    # headers["Content-Type"] will be nil if the status of the response is 304 (Not Modified)
-    # From the HTTP Status Code Definitions:
-    # If the client has performed a conditional GET request and access is allowed,
-    # but the document has not been modified, the server SHOULD respond with this status code.
-    # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-    if !headers["Content-Type"].nil? && (headers["Content-Type"].include? "text/html")
-      head = response.body
+
+    if should_instrument?(headers) && (source = response_source(response))
       page = env['REQUEST_URI']
       page.gsub!(/\?.*/, '') if page  #remove url parameters
-      new_head = head.sub /<\/[bB][oO][dY][yY]\s*>/, "#{adwords_tracking_code(page, @conversions)}\n</body>"
-      headers["Content-Length"] = new_head.length.to_s
-      new_response = Rack::Response.new
-      new_response.body = new_head
-      [status, headers, new_response]
+
+      tracking_code = adwords_tracking_code(page, @conversions)
+      return [status, headers, response] if tracking_code.to_s == ""
+
+      new_body = source.sub /<\/[bB][oO][dY][yY]\s*>/, "#{tracking_code}\n</body>"
+      headers["Content-Length"] = new_body.length.to_s
+      Rack::Response.new(new_body, status, headers).finish
     else
       [status, headers, response]
     end

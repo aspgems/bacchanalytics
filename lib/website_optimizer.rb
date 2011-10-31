@@ -1,3 +1,5 @@
+require "google_analytics"
+
 module WebsiteOptimizerTrackingCode
 
   # Construct the Google WebSite Optimizer tracking code.
@@ -69,7 +71,7 @@ module WebsiteOptimizerTrackingCode
         var _gaq = _gaq || [];
         _gaq.push(['gwo._setAccount', '#{account_id}']);
         _gaq.push(['gwo._trackPageview', '/#{track_page_id}/test']);
-        #{load_ga}
+        #{load_ga_src}
       </script>
       <!-- End of Google Website Optimizer Tracking Script -->
     SCRIPT
@@ -85,7 +87,7 @@ module WebsiteOptimizerTrackingCode
         var _gaq = _gaq || [];
         _gaq.push(['gwo._setAccount', '#{account_id}']);
         _gaq.push(['gwo._trackPageview', '/#{track_page_id}/test']);
-        #{load_ga}
+        #{load_ga_src}
       </script>
       <!-- End of Google Website Optimizer Tracking Script -->
     SCRIPT
@@ -101,7 +103,7 @@ module WebsiteOptimizerTrackingCode
         var _gaq = _gaq || [];
         _gaq.push(['gwo._setAccount', '#{account_id}']);
         #{track_page_ids.map{|id| "_gaq.push(['gwo._trackPageview', '/#{id}/goal']);" }.join("\n")}
-        #{load_ga}
+        #{load_ga_src}
       </script>
       <!-- End of Google Website Optimizer Tracking Script -->
     SCRIPT
@@ -157,46 +159,34 @@ module WebsiteOptimizerTrackingCode
 
     (uniq_goals & test_pages).size == 0
   end
-
-  # Return the javascript code used to load google analytics code
-  def load_ga
-    <<-SCRIPT
-    (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-    SCRIPT
-  end
-
 end
 
 class WebsiteOptimizer
-
+  include GoogleAnalytics::Base
   include WebsiteOptimizerTrackingCode
 
   def initialize(app, options = {})
     @app = app
     @account_id = options[:account_id] || "UA-XXXXX-X"
     @ab = options[:ab] || {}
+    @load_ga_src = options[:load_ga_src] || true
   end
 
   def call(env)
     status, headers, response = @app.call(env)
-    # headers["Content-Type"] will be nil if the status of the response is 304 (Not Modified)
-    # From the HTTP Status Code Definitions:
-    # If the client has performed a conditional GET request and access is allowed,
-    # but the document has not been modified, the server SHOULD respond with this status code.
-    # http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
-    if !headers["Content-Type"].nil? && (headers["Content-Type"].include? "text/html")
-      head = response.body
+
+    if should_instrument?(headers) && (source = response_source(response))
       page = env['REQUEST_URI']
       page.gsub!(/\?.*/, '') if page  #remove url parameters
-      new_head = head.sub /<[hH][eE][aA][dD]\s*>/, "<head>\n\n#{website_optimizer_tracking_code(page, @account_id, @ab)}"
-      headers["Content-Length"] = new_head.length.to_s
-      new_response = Rack::Response.new
-      new_response.body = new_head
-      [status, headers, new_response]
+
+      @load_ga_src = false if env["bacchanalytics.loaded_ga_src"]
+      tracking_code = website_optimizer_tracking_code(page, @account_id, @ab)
+      return [status, headers, response] if tracking_code.to_s == ""
+
+      env["bacchanalytics.loaded_ga_src"] = true
+      new_body = source.sub /<[hH][eE][aA][dD]\s*>/, "<head>\n\n#{tracking_code}"
+      headers["Content-Length"] = new_body.length.to_s
+      Rack::Response.new(new_body, status, headers).finish
     else
       [status, headers, response]
     end
@@ -205,5 +195,9 @@ class WebsiteOptimizer
   private
   def logger
     defined?(Rails.logger) ? Rails.logger : Logger.new($stderr)
+  end
+
+  def load_ga_src
+    @load_ga_src ? super : ""
   end
 end
