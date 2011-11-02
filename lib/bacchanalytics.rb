@@ -9,14 +9,14 @@ class Bacchanalytics
     @web_property_id = options[:web_property_id] || "UA-XXXXX-X"
     @domain_name = options[:domain_name]
     @ignored_organic = options[:ignored_organic]
-    @load_ga_src = options[:load_ga_src] || true
+    @skip_ga_src = options[:skip_ga_src] || false
   end
 
   def call(env)
     status, headers, response = @app.call(env)
 
     if should_instrument?(headers) && (source = response_source(response))
-      @load_ga_code = false if env["bacchanlytics.loaded_ga_src"]
+      @skip_ga_src = true if env["bacchanlytics.loaded_ga_src"]
       tracking_code = google_analytics_tracking_code(@web_property_id, @domain_name)
 
       env["bacchanalytics.loaded_ga_src"] = true
@@ -57,7 +57,7 @@ class Bacchanalytics
 
   private
   def load_ga_src
-    @load_ga_src ? super : ""
+    @skip_ga_src ? "" : super
   end
 end
 

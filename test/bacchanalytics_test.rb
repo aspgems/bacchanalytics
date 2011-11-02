@@ -40,7 +40,6 @@ class BacchanalyticsTest < Test::Unit::TestCase
     assert gatc_rack.include?("_gaq.push(['_setAccount', 'UA-12345-6']);"), gatc_rack
   end
 
-
   HTML_DOCUMENT = <<-HTML
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">

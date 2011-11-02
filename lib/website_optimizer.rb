@@ -169,7 +169,7 @@ class WebsiteOptimizer
     @app = app
     @account_id = options[:account_id] || "UA-XXXXX-X"
     @ab = options[:ab] || {}
-    @load_ga_src = options[:load_ga_src] || true
+    @skip_ga_src = options[:skip_ga_src] || false
   end
 
   def call(env)
@@ -179,7 +179,7 @@ class WebsiteOptimizer
       page = env['REQUEST_URI']
       page.gsub!(/\?.*/, '') if page  #remove url parameters
 
-      @load_ga_src = false if env["bacchanalytics.loaded_ga_src"]
+      @skip_ga_src = true if env["bacchanalytics.loaded_ga_src"]
       tracking_code = website_optimizer_tracking_code(page, @account_id, @ab)
       return [status, headers, response] if tracking_code.to_s == ""
 
@@ -198,6 +198,6 @@ class WebsiteOptimizer
   end
 
   def load_ga_src
-    @load_ga_src ? super : ""
+    @skip_ga_src ? "" : super
   end
 end
