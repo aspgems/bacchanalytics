@@ -1,3 +1,9 @@
+0.1.8
+-----
+
+* Not load google analytics source multiple times (one for each middleware)
+* Added option to skip google analytics source code
+
 0.1.7
 -----
 
