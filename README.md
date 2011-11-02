@@ -89,4 +89,4 @@ config.middleware.use "Bacchanalytics::AdwordsConversion", [
                                                            ]
 ````
 
-Copyright (c) 2010 ASPgems, released under the MIT license
+Copyright (c) 2011 ASPgems, released under the MIT license
