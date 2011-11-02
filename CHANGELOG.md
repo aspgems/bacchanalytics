@@ -1,3 +1,6 @@
+* Build the gem
+* Scope middlewares in Bacchanalytics scope
+
 0.1.8
 -----
 

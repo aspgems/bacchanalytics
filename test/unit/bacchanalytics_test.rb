@@ -1,14 +1,12 @@
 require 'test_helper'
-require 'rack/test'
-require 'nokogiri'
 require 'bacchanalytics'
 
 ENV['RACK_ENV'] = 'test'
 
 class BacchanalyticsTest < Test::Unit::TestCase
   include Rack::Test::Methods
-  include GoogleAnalytics::TrackingCode
-  include GoogleAnalytics::Base
+  include Bacchanalytics::GoogleAnalytics::TrackingCode
+  include Bacchanalytics::GoogleAnalytics::Base
 
   WEB_PROPERTY_ID = "UA-12345-6"
 
@@ -17,7 +15,7 @@ class BacchanalyticsTest < Test::Unit::TestCase
     mock_app = lambda do |env|
       [200, {'Content-Type' => 'text/html'}, response]
     end
-    Bacchanalytics.new(mock_app, :web_property_id => WEB_PROPERTY_ID)
+    Bacchanalytics::Analytics.new(mock_app, :web_property_id => WEB_PROPERTY_ID)
   end
 
   def test_should_only_instrument_html_requests

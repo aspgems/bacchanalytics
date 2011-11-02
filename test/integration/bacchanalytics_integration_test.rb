@@ -1,14 +1,11 @@
 require 'test_helper'
-require 'rack/test'
-require 'nokogiri'
 require 'bacchanalytics'
-require 'website_optimizer'
 
 ENV['RACK_ENV'] = 'test'
 
 class BacchanalyticsIntegrationTest < Test::Unit::TestCase
   include Rack::Test::Methods
-  include GoogleAnalytics::Base
+  include Bacchanalytics::GoogleAnalytics::Base
 
   def app
     response = Rack::Response.new(HTML_DOCUMENT)
@@ -17,12 +14,12 @@ class BacchanalyticsIntegrationTest < Test::Unit::TestCase
     end
 
     Rack::Builder.new do
-      use WebsiteOptimizer, {:account_id => 'UA-20891683-1',
-                             :ab => {'1924712694' => {:a => ["/"],
-                                                      :b => ["/home"],
-                                                      :goal => ["/welcome"]}}
+      use Bacchanalytics::WebsiteOptimizer, {:account_id => 'UA-20891683-1',
+                                             :ab => {'1924712694' => {:a => ["/"],
+                                                                      :b => ["/home"],
+                                                                      :goal => ["/welcome"]}}
       }
-      use Bacchanalytics, :web_property_id => "UA-12345-6"
+      use Bacchanalytics::Analytics, :web_property_id => "UA-12345-6"
       run mock_app
     end
   end

@@ -1,7 +1,5 @@
 require 'test_helper'
-require 'rack/test'
-require 'nokogiri'
-require 'adwords_conversion'
+require 'bacchanalytics'
 
 ENV['RACK_ENV'] = 'test'
 
@@ -20,7 +18,7 @@ class AdwordsConversionTest < Test::Unit::TestCase
          :pages=>["/welcome", "/en/welcome", "/es/welcome", "/ca/welcome", "/eu/welcome"]
         }
     ]
-    AdwordsConversion.new(mock_app, @options)
+    Bacchanalytics::AdwordsConversion.new(mock_app, @options)
   end
 
   def test_must_not_include_any_code_if_no_page

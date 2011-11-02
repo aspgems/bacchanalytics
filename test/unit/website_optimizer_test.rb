@@ -1,14 +1,12 @@
 require 'test_helper'
-require 'rack/test'
-require 'nokogiri'
-require 'website_optimizer'
+require 'bacchanalytics'
 
 ENV['RACK_ENV'] = 'test'
 
 class WebsiteOptimizerTest < Test::Unit::TestCase
   include Rack::Test::Methods
-  include GoogleAnalytics::Base
-  extend GoogleAnalytics::Base
+  include Bacchanalytics::GoogleAnalytics::Base
+  extend Bacchanalytics::GoogleAnalytics::Base
 
   WEB_PROPERTY_ID = "UA-12345-6"
 
@@ -17,11 +15,11 @@ class WebsiteOptimizerTest < Test::Unit::TestCase
     mock_app = lambda do |env|
       [200, {'Content-Type' => 'text/html'}, response]
     end
-    WebsiteOptimizer.new(mock_app, {:skip_ga_src => true,
-                                    :account_id => 'UA-20891683-1',
-                                    :ab => {'1924712694' => {:a => ["/"],
-                                                             :b => ["/home"],
-                                                             :goal => ["/welcome"]}}})
+    Bacchanalytics::WebsiteOptimizer.new(mock_app, {:skip_ga_src => true,
+                                                    :account_id => 'UA-20891683-1',
+                                                    :ab => {'1924712694' => {:a => ["/"],
+                                                                             :b => ["/home"],
+                                                                             :goal => ["/welcome"]}}})
   end
 
   def test_must_not_include_if_specify_skip

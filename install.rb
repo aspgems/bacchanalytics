@@ -1,1 +1,1 @@
-# Install hook code here
+require "bacchanalytics"
