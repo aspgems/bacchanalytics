@@ -20,6 +20,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "rack", ">= 1.1"
   gem.add_runtime_dependency "activesupport", ">= 2"
 
+  gem.add_development_dependency "appraisal", "~> 0.3.8"
   gem.add_development_dependency "rack-test", "~> 0.6"
   gem.add_development_dependency "nokogiri", "~> 1.5"
   gem.add_development_dependency "rake",    "~> 0.9"
